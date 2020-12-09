@@ -1,9 +1,8 @@
 #flag per la compilazione
 CFLAGS = -std=c89 -pedantic
-
 SO_TAXI = 1
-SO_SOURCES = 50
-SO_HOLES = 46
+SO_SOURCES = 2
+SO_HOLES = 6
 SO_TOP_CELLS = 4
 SO_CAP_MIN = 5
 SO_CAP_MAX = 6
