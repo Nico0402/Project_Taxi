@@ -7,7 +7,7 @@
 #include <sys/sysinfo.h>
 #include <sys/wait.h>
 
-int SO_HOLES;
+
 
 int main(int argc, char * argv[]){
 	point mappa[SO_HEIGHT][SO_WIDTH];
