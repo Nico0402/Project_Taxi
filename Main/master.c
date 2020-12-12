@@ -1,120 +1,40 @@
-#include "master.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <unistd.h>
 #include <errno.h>
-#include <sys/sysinfo.h>
-#include <sys/wait.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/ipc.h> 
+#include <sys/shm.h>
+#include <sys/sem.h>
+#include <sys/stat.h>
 
-int SO_HOLES;
-int SO_SOURCES;
+#include "taxi.h"
+#include "genera_mappa.h"
 
-int main(int argc, char * argv[]){
-	point mappa[SO_HEIGHT][SO_WIDTH];
-	SO_HOLES = atoi(argv[3]);
-	SO_SOURCES = atoi(argv[2]);
+int main(int argc, char * argv[]){ 
+	int SO_HOLES = atoi(argv[3]), SO_SOURCES = atoi(argv[2]), SO_TIMENSEC_MIN = atoi(argv[7]), 
+	    SO_TIMENSEC_MAX = atoi(argv[8]), SO_CAP_MIN = atoi(argv[5]), SO_CAP_MAX = atoi(argv[6]);
+	int mid, i, j;
+	struct mappa * mappa;	
+
+	mid = shmget(IPC_PRIVATE, sizeof(* mappa), S_IRUSR | S_IWUSR);
+	TEST_ERROR;
+	/*printf("%d",mid);*/
+	mappa = shmat(mid, NULL, 0);  
+	TEST_ERROR;
 	
 	inizializza_mappa(mappa);
-	genera_holes(mappa);
-	genera_sources(mappa);
+	genera_holes(mappa, SO_HOLES);
+	genera_sources(mappa, SO_SOURCES);
+	definisci_tempi(mappa, SO_TIMENSEC_MIN, SO_TIMENSEC_MAX);
+	definisci_capienza(mappa, SO_CAP_MIN, SO_CAP_MAX);
 	stampa_mappa(mappa);
-	exit(EXIT_SUCCESS);
-}
-
-void inizializza_mappa(point mappa[SO_HEIGHT][SO_WIDTH]){
-	int i, j;
-	
-	for(i=0; i<SO_HEIGHT;i++){
+	/*for(i=0;i<SO_HEIGHT;i++){
 		for(j=0;j<SO_WIDTH;j++){
-			mappa[i][j].type = NOT_HOLES;
+			printf("%d %d %ld %d\n",i,j,mappa->mappa[i][j].tempo_attr,mappa->mappa[i][j].capacita);
 		}
-	}
-}
-
-void genera_holes(point mappa[SO_HEIGHT][SO_WIDTH]){
-	int i, j, k=0,riga=0, col=0, cond;
-	
-	srand(getpid());
-	while(k<SO_HOLES){
-		do{
-			cond=0;
-			riga = rand()%SO_HEIGHT;
-			col = rand()%SO_WIDTH;
-			
-			if(mappa[riga][col].type==NOT_HOLES){
-				for(i=riga-1;i<=riga+1 && !cond;i++){
-					for(j=col-1;j<=col+1 && !cond;j++){
-						if(i>=0 && i<=SO_HEIGHT && j>=0 && j<=SO_WIDTH && mappa[i][j].type==HOLES)
-							cond=1;
-					}
-				}
-				if(!cond)
-					mappa[riga][col].type = HOLES;
-			}else
-				cond = 1;
-			
-		}while(cond==1);
-		
-		k++;
-	}
-}
-
-void genera_sources(point mappa[SO_HEIGHT][SO_WIDTH]){
-	int i, j, k=0,riga=0, col=0, cond;
-	
-	srand(getpid());
-	while(k<SO_SOURCES){
-		do{
-			cond=0;
-			riga = rand()%SO_HEIGHT;
-			col = rand()%SO_WIDTH;
-			
-			if(mappa[riga][col].type==NOT_HOLES)
-				mappa[riga][col].type = SOURCES;
-			else 
-				cond=1;
-			
-		}while(cond==1);
-		
-		k++;
-	}
-}
-
-void stampa_mappa(point mappa[SO_HEIGHT][SO_WIDTH]){
-	int i, j;
-	
-	for(j=0; j<SO_WIDTH; j++)
-	{
-	    printf("----");
-	}
-	printf("-\n");
-
-    	for(i=0; i<SO_HEIGHT; i++)
-    	{
-    		for(j=0; j<SO_WIDTH; j++)
-		{
-				if(mappa[i][j].type == HOLES)
-					printf("| * ");
-				else if(mappa[i][j].type == SOURCES)
-					printf("| S ");
-				else 
-					printf("|   ");
-		}
-  		printf("|\n");
-  		if(i != SO_HEIGHT-1)
-  		{
-    			for(j=0; j<SO_WIDTH; j++)
-			{
-		    		printf("|---");
-			}
-  			printf("|\n");
-		}		
-	}	
-	
-	for(j=0; j<SO_WIDTH; j++)
-	{
-	    printf("----");
-	}
-	printf("-\n");
+	}*/
+	shmctl(mid, 0, IPC_RMID);
+	exit(EXIT_SUCCESS);
 }
